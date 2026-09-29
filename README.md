@@ -1,0 +1,2 @@
+. Le marché F1 Fantasy comme mini-marché financier
+Le jeu officiel F1 Fantasy attribue un prix à chaque pilote qui évolue selon ses performances, un peu comme une action. En scrapant l'historique des prix et en le croisant aux résultats réels, on peut regarder si le prix anticipe la performance ou la suit avec retard 
