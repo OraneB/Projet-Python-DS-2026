@@ -9,7 +9,7 @@ def depassement(annee):
     courses = pd.DataFrame(get_json("https://api.openf1.org/v1/sessions", {"year": annee, "session_name": "Race"}))
     lignes = []
     for i in range(len(courses)):
-        cle = int(courses{"session_key"}.iloc[i])
+        cle = int(courses["session_key"].iloc[i])
         try:
             n = len(get_json("https://api.openf1.org/v1/overtakes", {"session_key": cle}))
         except RuntimeError:
