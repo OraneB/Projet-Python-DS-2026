@@ -42,7 +42,7 @@ def coef_depassement(annees=ANNEE_COEFF):
         cou = courses_jolpica(annee).astype({"date_course": "datetime64[ns]"})
  
         # Jointure sur la date à un jour près
-        t = pd.merge_asof(dep.sort_values("date_course"), courses.sort_values("date_course"),
+        t = pd.merge_asof(dep.sort_values("date_course"), cou.sort_values("date_course"),
                           on="date_course", direction="nearest",
                           tolerance=pd.Timedelta(days=1))
         assert t["circuit_id"].notna().all(), "course OpenF1 sans circuit Jolpica"
@@ -61,6 +61,6 @@ def coef_depassement(annees=ANNEE_COEFF):
             .reset_index())
  
     RAW.mkdir(parents=True, exist_ok=True)
-    courses.to_parquet(RAW / "depassements_par_course.parquet", index=False)  # détail
+    courses.to_parquet(RAW / "depassements_par_course.parquet", index=False)
     coef.to_parquet(RAW / "coefficients_depassement.parquet", index=False)
     return coef
