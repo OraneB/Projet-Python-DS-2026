@@ -19,3 +19,12 @@ def depassement(annee):
                        "date_course": pd.to_datetime(courses["date_start"].iloc[i], utc=True).tz_localize(None).normalize()})
         time.sleep(2)  # OpenF1 limite le nombre de requêtes par minute
     return pd.DataFrame(lignes)
+
+def courses(annee):
+    rep = get_json(f"https://api.jolpi.ca/ergast/f1/{annee}/results/1.json", {"limit": 100})
+    lignes = []
+    for c in rep["MRData"]["RaceTable"]["Races"]:
+        lignes.append({"circuit_id": c["Circuit"]["circuitId"],
+                    "date_course": pd.Timestamp(c["date"]),
+                    "tours": int(c["Results"][0]["laps"])})
+    return pd.DataFrame(lignes)
