@@ -122,3 +122,21 @@ def collecter_jolpica(annee):
             "date_course": course["date"],
         })
     pd.DataFrame(lignes).to_parquet(RAW / "jolpica_calendrier.parquet", index=False)
+
+# Stockage (pour simplifier le chargement)
+
+def charger(nom, fonction_collecte=None, annee=None):
+    fichier = RAW / nom
+    
+    # Si le fichier existe déjà, on le charge
+    if fichier.exists():
+        return pd.read_parquet(fichier)
+
+    # Sinon, on lance la collecte
+    if fonction_collecte is None:
+        raise FileNotFoundError(fichier)
+
+    fonction_collecte(annee)
+
+    # On charge le fichier qui vient d'être créé
+    return pd.read_parquet(fichier)
