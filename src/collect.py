@@ -99,3 +99,11 @@ def collecter_polymarket(annee):
     pd.DataFrame(liste_events).to_parquet(RAW / "polymarket_f1_events.parquet", index=False)
     pd.DataFrame(liste_marches).to_parquet(RAW / "polymarket_f1_markets.parquet", index=False)
     prix.to_parquet(RAW / "polymarket_f1_prices.parquet", index=False)
+
+# donne le calendrier des séances ie quand ont lieu les qualifs, les courses etc
+
+def collecter_openf1(annee):
+    seances = pd.DataFrame(get_json("https://api.openf1.org/v1/sessions", {"year": annee}))
+    seances["date_start"] = pd.to_datetime(seances["date_start"], utc=True)
+    seances["date_end"] = pd.to_datetime(seances["date_end"], utc=True)
+    seances.to_parquet(RAW / "openf1_sessions.parquet", index=False)
