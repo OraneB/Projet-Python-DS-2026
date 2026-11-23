@@ -43,6 +43,8 @@ def nettoyer_prix(prix, marches): #aligner les prix minutes par minute
 
 
 def table_grands_prix(events, marches, seances, calendrier):
+## On récupère les horaires des qualifs et de la course de chaque week-end (API OpenF1)
+
     courses = seances[seances["session_name"] == "Race"].drop_duplicates("meeting_key")
     courses = courses[["meeting_key", "date_start"]].rename(columns={"date_start": "course_debut"})
 
@@ -53,6 +55,7 @@ def table_grands_prix(events, marches, seances, calendrier):
     weekends = courses.merge(qualifs, on="meeting_key")
     meetings_sprint = seances.loc[seances["session_name"] == "Sprint", "meeting_key"]
     weekends["sprint"] = weekends["meeting_key"].isin(meetings_sprint)
+    ### on associe chaque marché polymarket à la dernière course qui a commencé avant la clôture
     lignes = []
     for event_id, groupe in marches.groupby("event_id"):
         cloture = pd.to_datetime(groupe["closed"], utc=True).min()
@@ -62,9 +65,13 @@ def table_grands_prix(events, marches, seances, calendrier):
         ligne["event_id"] = event_id
         lignes.append(ligne)
     gp = pd.DataFrame(lignes).merge(events, on="event_id")
-
+### On  associe au circuit
     gp["date_course"] = gp["course_debut"].dt.strftime("%Y-%m-%d")
     gp = gp.merge(calendrier, on="date_course", how="left")
+    
 
     assert gp["meeting_key"].duplicated().sum() == 0  
     return gp.sort_values("course_debut").reset_index(drop=True)
+ 
+ 
+def reaction(prix_gp, quali_debut, quali_fin):
