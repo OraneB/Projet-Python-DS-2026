@@ -62,3 +62,40 @@ def historique_prix(token, debut, fin):
         points = points + rep["history"]
         debut = fin_bloc
     return points
+
+#fonction de collecte pour télécharger toutes les données de tous les Grands Prix et les classer entre grand prix, pilote de grand prix et prix gagnés
+
+def collecter_polymarket(annee):
+    events = events_polymarket(annee)
+    print(len(events), "Grands Prix trouvés")
+
+    liste_events = []
+    liste_marches = []
+    liste_prix = []
+    for e in events:
+        liste_events.append({"event_id": e["id"], "title": e["title"].strip(),
+                             "volume_usd": float(e["volume"])})
+
+        # un marché par pilote dans chaque GP
+        for m in e["markets"]:
+            token_yes = json.loads(m["clobTokenIds"])[0]
+            debut = pd.Timestamp(m["startDate"])
+            cloture = pd.Timestamp(m["closedTime"])
+            gagne = json.loads(m["outcomePrices"])[0] == "1"
+            liste_marches.append({"event_id": e["id"], "driver": m["groupItemTitle"],
+                                  "volume_usd": float(m["volume"]), "closed": cloture,
+                                  "won": gagne})
+
+            for p in historique_prix(token_yes, debut, cloture + pd.Timedelta(hours=1)):
+                liste_prix.append({"event_id": e["id"], "driver": m["groupItemTitle"],
+                                   "t": p["t"], "price": p["p"]})
+        print("  ok :", e["title"].strip())
+
+    prix = pd.DataFrame(liste_prix)
+    prix["timestamp_utc"] = pd.to_datetime(prix["t"], unit="s", utc=True)
+    prix = prix.drop(columns="t")
+
+    RAW.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(liste_events).to_parquet(RAW / "polymarket_f1_events.parquet", index=False)
+    pd.DataFrame(liste_marches).to_parquet(RAW / "polymarket_f1_markets.parquet", index=False)
+    prix.to_parquet(RAW / "polymarket_f1_prices.parquet", index=False)
