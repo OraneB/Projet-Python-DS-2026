@@ -35,3 +35,9 @@ def nettoyer_marches(marches):
     assert marches.duplicated(["event_id", "pilote"]).sum() == 0
     assert (marches.groupby("event_id")["won"].sum() == 1).all()
     return marches
+
+def nettoyer_prix(prix, marches):
+    prix = prix.merge(marches[["event_id", "driver", "pilote"]], on=["event_id", "driver"])
+    prix["timestamp_utc"] = pd.to_datetime(prix["timestamp_utc"], utc=True)
+    prix = prix.drop(columns="driver")
+    return prix.sort_values("timestamp_utc")
