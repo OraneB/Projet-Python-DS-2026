@@ -39,3 +39,32 @@ def nettoyer_prix(prix, marches): #aligner les prix minutes par minute
     prix["timestamp_utc"] = pd.to_datetime(prix["timestamp_utc"], utc=True)
     prix = prix.drop(columns="driver")
     return prix.sort_values("timestamp_utc")
+
+
+
+def table_grands_prix(events, marches, seances, calendrier):
+    courses = seances[seances["session_name"] == "Race"].drop_duplicates("meeting_key")
+    courses = courses[["meeting_key", "date_start"]].rename(columns={"date_start": "course_debut"})
+
+    qualifs = seances[seances["session_name"] == "Qualifying"].drop_duplicates("meeting_key")
+    qualifs = qualifs[["meeting_key", "date_start", "date_end"]]
+    qualifs = qualifs.rename(columns={"date_start": "quali_debut", "date_end": "quali_fin"})
+
+    weekends = courses.merge(qualifs, on="meeting_key")
+    meetings_sprint = seances.loc[seances["session_name"] == "Sprint", "meeting_key"]
+    weekends["sprint"] = weekends["meeting_key"].isin(meetings_sprint)
+    lignes = []
+    for event_id, groupe in marches.groupby("event_id"):
+        cloture = pd.to_datetime(groupe["closed"], utc=True).min()
+        courses_avant = weekends[weekends["course_debut"] <= cloture]
+        derniere = courses_avant.sort_values("course_debut").iloc[-1]
+        ligne = derniere.to_dict()
+        ligne["event_id"] = event_id
+        lignes.append(ligne)
+    gp = pd.DataFrame(lignes).merge(events, on="event_id")
+
+    gp["date_course"] = gp["course_debut"].dt.strftime("%Y-%m-%d")
+    gp = gp.merge(calendrier, on="date_course", how="left")
+
+    assert gp["meeting_key"].duplicated().sum() == 0  
+    return gp.sort_values("course_debut").reset_index(drop=True)
