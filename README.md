@@ -2,7 +2,7 @@
 
 Projet du cours : *Python pour la data science* (ENSAE 2A, 2026-2027).
 
-Auteurs : Orane Bertout, Stanislas Hanriot et Colombe De Gélis
+Auteurs : Orane Bertout, Stanislas Hanriot et Colombe de Gélis
 
 **Question :** le marché de prédiction Polymarket réagit-il plus fortement aux qualifications de F1 sur les circuits où il est difficile de dépasser ?
 
