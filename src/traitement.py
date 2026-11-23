@@ -21,3 +21,17 @@ def nom_pilote(intitule):
         if cle in intitule:
             return PILOTES[cle]
     return None  # marché de réserve : "Other", "Driver A"...
+
+
+#fonctions de nettoyage 
+
+def nettoyer_marches(marches):
+    marches = marches.copy()
+    marches["pilote"] = marches["driver"].apply(nom_pilote)
+    print(marches["pilote"].isna().sum(), "marchés de réserve supprimés")
+    marches = marches.dropna(subset=["pilote"])
+
+    # vérifie que pas de pilote en double dans un GP et que bien un seul vainqueur par GP
+    assert marches.duplicated(["event_id", "pilote"]).sum() == 0
+    assert (marches.groupby("event_id")["won"].sum() == 1).all()
+    return marches
