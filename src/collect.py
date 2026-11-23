@@ -21,7 +21,7 @@ def get_json(url, params=None):
     raise RuntimeError("L'API ne répond pas : " + url)
 
 
-# ---------------- Polymarket ----------------
+# ---------------- Fonctions polymarkets ----------------
 
 def events_polymarket(annee):
     # Recherche de tous les events "vainqueur du Grand Prix" (20 résultats par page)
@@ -48,3 +48,17 @@ def events_polymarket(annee):
             resultat.append(e)
             ids_vus.append(e["id"])
     return resultat
+
+#fonction historique qui récupère les prix minute par minute entre debut et fin
+
+def historique_prix(token, debut, fin):
+    # L'API ne renvoie pas plus de quelques jours de prix à la minute, pour éviter qu'elle tronque, on découpe en blocs de 3 jours
+    points = []
+    while debut < fin:
+        fin_bloc = min(debut + pd.Timedelta(days=3), fin)
+        params = {"market": token, "fidelity": 1,
+                  "startTs": int(debut.timestamp()), "endTs": int(fin_bloc.timestamp())}
+        rep = get_json("https://clob.polymarket.com/prices-history", params)
+        points = points + rep["history"]
+        debut = fin_bloc
+    return points
