@@ -15,7 +15,7 @@ PILOTES = {
 }
 
 
-def nom_pilote(intitule):
+def nom_pilote(intitule): #permet d'uniformiser les noms
     intitule = intitule.lower()
     for cle in PILOTES:
         if cle in intitule:
@@ -25,18 +25,16 @@ def nom_pilote(intitule):
 
 #fonctions de nettoyage 
 
-def nettoyer_marches(marches):
+def nettoyer_marches(marches): #filtre les marchés et vérifie la cohérence
     marches = marches.copy()
     marches["pilote"] = marches["driver"].apply(nom_pilote)
     print(marches["pilote"].isna().sum(), "marchés de réserve supprimés")
     marches = marches.dropna(subset=["pilote"])
-
-    # vérifie que pas de pilote en double dans un GP et que bien un seul vainqueur par GP
-    assert marches.duplicated(["event_id", "pilote"]).sum() == 0
-    assert (marches.groupby("event_id")["won"].sum() == 1).all()
+    assert marches.duplicated(["event_id", "pilote"]).sum() == 0 # vérifie que pas de pilote en double dans un GP
+    assert (marches.groupby("event_id")["won"].sum() == 1).all() #et que bien un seul vainqueur par GP
     return marches
 
-def nettoyer_prix(prix, marches):
+def nettoyer_prix(prix, marches): #aligner les prix minutes par minute
     prix = prix.merge(marches[["event_id", "driver", "pilote"]], on=["event_id", "driver"])
     prix["timestamp_utc"] = pd.to_datetime(prix["timestamp_utc"], utc=True)
     prix = prix.drop(columns="driver")
