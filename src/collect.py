@@ -107,3 +107,18 @@ def collecter_openf1(annee):
     seances["date_start"] = pd.to_datetime(seances["date_start"], utc=True)
     seances["date_end"] = pd.to_datetime(seances["date_end"], utc=True)
     seances.to_parquet(RAW / "openf1_sessions.parquet", index=False)
+
+# permet de compléter les données d'OpenF1 avec Jolpica qui donne en plus coordonnées GPS et à quel round on en est
+
+def collecter_jolpica(annee):
+    rep = get_json(f"https://api.jolpi.ca/ergast/f1/{annee}.json", {"limit": 100})
+    lignes = []
+    for course in rep["MRData"]["RaceTable"]["Races"]:
+        lignes.append({
+            "round": int(course["round"]),
+            "circuit_id": course["Circuit"]["circuitId"],
+            "lat": float(course["Circuit"]["Location"]["lat"]),
+            "lon": float(course["Circuit"]["Location"]["long"]),
+            "date_course": course["date"],
+        })
+    pd.DataFrame(lignes).to_parquet(RAW / "jolpica_calendrier.parquet", index=False)
