@@ -75,3 +75,28 @@ def table_grands_prix(events, marches, seances, calendrier):
  
  
 def reaction(prix_gp, quali_debut, quali_fin):
+    ### l'heure qui précède les qualifs. après : de 30 à 90 min après la fin
+    avant = probabilites(prix_gp, quali_debut - pd.Timedelta(minutes=60), quali_debut)
+    apres = probabilites(prix_gp, quali_fin + pd.Timedelta(minutes=30),
+                         quali_fin + pd.Timedelta(minutes=90))
+    if avant is None or apres is None:
+        return np.nan
+    ##calcul de la variation
+    tableau = pd.concat([avant, apres], axis=1, keys=["avant", "apres"]).fillna(0)
+    return (tableau["apres"] - tableau["avant"]).abs().sum() / 2
+
+def reactions(prix, gp):
+    # Réaction aux qualifs: utilisation de reaction sur toutes les courses
+    gp = gp.copy()
+    liste_tv = []
+    liste_placebo = []
+    for i in range(len(gp)):
+        ligne = gp.iloc[i]
+        prix_gp = prix[prix["event_id"] == ligne["event_id"]]
+        liste_tv.append(reaction(prix_gp, ligne["quali_debut"], ligne["quali_fin"]))
+        decalage = pd.Timedelta(hours=12)
+        liste_placebo.append(reaction(prix_gp, ligne["quali_debut"] - decalage,
+                                      ligne["quali_fin"] - decalage))
+    gp["tv"] = liste_tv
+    gp["tv_placebo"] = liste_placebo
+    return gp
