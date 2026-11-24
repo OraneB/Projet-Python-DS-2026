@@ -73,7 +73,15 @@ def table_grands_prix(events, marches, seances, calendrier):
     assert gp["meeting_key"].duplicated().sum() == 0  
     return gp.sort_values("course_debut").reset_index(drop=True)
  
- 
+
+def probabilites(prix_gp, debut, fin):
+    # Probabilité moyenne de chaque pilote entre debut et fin.
+    fenetre = prix_gp[(prix_gp["timestamp_utc"] >= debut) & (prix_gp["timestamp_utc"] <= fin)]
+    if len(fenetre) == 0:
+        return None
+    p = fenetre.groupby("pilote")["price"].mean()
+    return p / p.sum()
+
 def reaction(prix_gp, quali_debut, quali_fin):
     ### l'heure qui précède les qualifs. après : de 30 à 90 min après la fin
     avant = probabilites(prix_gp, quali_debut - pd.Timedelta(minutes=60), quali_debut)
