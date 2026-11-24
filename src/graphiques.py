@@ -51,7 +51,7 @@ def nuage(gp):
     ax.scatter(gp["coef_depassement"], gp["tv"])
     for i in range(len(gp)):
         ax.annotate(gp["circuit_id"].iloc[i], (gp["coef_depassement"].iloc[i], gp["tv"].iloc[i]), fontsize=7)
-    ax.set_xlabel("Coefficient de dépassement (2020-2024)")
+    ax.set_xlabel("Coefficient de dépassement (2023-2024)")
     ax.set_ylabel("Réaction aux qualifs")
     ax.set_title("Réaction du marché selon la facilité de dépassement")
     plt.show()
